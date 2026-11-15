@@ -1,0 +1,23 @@
+<!-- Supabase → Authentication → Emails → "Confirm signup".
+     Subject: Confirm your Ware Print seller account
+     Paste everything below this comment into the "Message body" box. -->
+<div style="margin:0;padding:24px 12px;background:#f7f7f4;font-family:Arial,Helvetica,sans-serif;color:#151515">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #d6d6d1">
+    <div style="height:4px;background:#c8102e"></div>
+    <div style="padding:18px 28px;border-bottom:1px solid #d6d6d1;font-size:14px;font-weight:bold;letter-spacing:3px">WARE&nbsp;PRINT</div>
+    <div style="padding:28px">
+      <h1 style="margin:0 0 12px;font-size:20px">Confirm your email address</h1>
+      <p style="margin:0 0 20px;font-size:15px;line-height:1.55;color:#45453f">
+        Thank you for creating a seller account on Ware Print. Press the button to confirm your email
+        address. You will then verify your mobile number and sign the seller oath before listing machines.
+      </p>
+      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard"
+         style="display:inline-block;background:#c8102e;color:#ffffff;padding:12px 20px;font-size:14px;font-weight:bold;text-decoration:none">
+        Confirm my email
+      </a>
+      <p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#6b6b64">
+        If you did not create an account on Ware Print, you can ignore this email.
+      </p>
+    </div>
+  </div>
+</div>

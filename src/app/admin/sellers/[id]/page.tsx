@@ -76,7 +76,7 @@ export default async function AdminSellerPage({ params }: PageProps<"/admin/sell
           <section className="border border-line p-5">
             <h2 className="font-semibold">Verify phone by call</h2>
             <p className="mt-1 text-sm text-ink-2">
-              If the SMS code does not arrive, call the seller on this number, confirm who they are, then mark it verified.
+              If the WhatsApp code does not arrive, call the seller on this number, confirm who they are, then mark it verified.
             </p>
             <ActionForm action={verifySellerPhone} className="mt-3 space-y-3">
               <input type="hidden" name="id" value={id} />

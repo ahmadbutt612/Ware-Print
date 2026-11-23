@@ -11,8 +11,8 @@ commission on sales to buyers introduced by Ware Print.
 
 - Next.js 16 (App Router, Server Actions, `proxy.ts`), React 19, TypeScript, Tailwind CSS 4
 - Supabase: Postgres + Row Level Security, Auth (email/password), Storage (photos/videos)
-- Resend (email, via HTTP API and as Supabase's SMTP) · Twilio (SMS)
-- Hosting: Vercel (function region `bom1` recommended, Supabase region Mumbai)
+- Email via Gmail SMTP (before a domain) or Resend · WhatsApp Cloud API (Meta) for codes and alerts, Twilio SMS as optional backup
+- Hosting: Vercel, functions pinned to `icn1` (Seoul) in `vercel.json` to sit next to the Supabase project (ap-northeast-2)
 
 ## Run locally
 

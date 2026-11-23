@@ -9,7 +9,7 @@ is needed. Follow the parts in order and tick the boxes as you go.
 | --- | --- | --- |
 | A | Create the database and see the website on your computer | 45 min |
 | B | Put the website on the internet | 30 min |
-| C | Switch on emails and text messages (SMS) | 45 min + waiting for DNS |
+| C | Switch on emails and WhatsApp | 45 min + waiting for DNS |
 | D | Final checks before launch | — |
 | E | How to run Ware Print day to day | — |
 
@@ -24,8 +24,8 @@ Prices change; check each website. All of these can be started free.
 | **Supabase** (supabase.com) | Database, logins, photo and video storage | Free to start. The free plan **pauses after 7 days without visitors** — upgrade to Pro (about US$25/month) before launch. |
 | **Vercel** (vercel.com) | Hosts the website | Free "Hobby" plan for testing. Hobby is for non-commercial use, so move to Pro (about US$20/month) when you launch. |
 | **GitHub** (github.com) | Keeps a copy of the code; Vercel deploys from it | Free |
-| **Resend** (resend.com) | Sends emails (inquiries, approvals, sign-up links) | Free up to about 3,000 emails/month |
-| **Twilio** (twilio.com) | Sends SMS (phone verification codes, inquiry alerts) | Pay per message |
+| **Gmail** (for now) → **Resend** (after you buy a domain) | Sends emails (inquiries, approvals, sign-up links) | Free (Gmail ~500/day; Resend ~3,000/month) |
+| **WhatsApp Cloud API** (Meta) | Phone verification codes and inquiry alerts | Pay per message (about US$0.015 in Pakistan) |
 | **Domain name** | e.g. `wareprint.pk` or `wareprint.com` | About US$10–15/year for .com |
 
 ---
@@ -92,7 +92,7 @@ create your Supabase account. Use that email for this test.
 
 - [ ] **Sign up:** go to **Sell a machine → Create seller account**, fill in the form.
 - [ ] **Confirm email:** open the email from Supabase and press **Confirm my email**. You land on your dashboard.
-- [ ] **Verify phone:** Dashboard → **Verify number**. Because SMS is not set up on your computer, the
+- [ ] **Verify phone:** Dashboard → **Verify number**. Because WhatsApp is not set up on your computer, the
       6-digit code is shown on screen. Type it in.
 - [ ] **Company details:** add your city if it is missing.
 - [ ] **Seller oath:** read it, type your name exactly as shown, tick the box, sign.
@@ -132,8 +132,8 @@ The easiest way without commands is **GitHub Desktop**:
       `https://wareprint.vercel.app`.
 - [ ] In Vercel: **Settings → Environment Variables** → change `NEXT_PUBLIC_SITE_URL` to that address →
       then **Deployments → ⋯ → Redeploy**.
-- [ ] Recommended: **Settings → Functions → Function Region → Mumbai (bom1)**, next to your database.
-      Redeploy again.
+- [ ] The server location is set in the code (`vercel.json` → Seoul, `icn1`) so it sits next to your Supabase
+      database in Seoul. If you ever move the database to another region, change it there too.
 
 ### B3. Connect your domain name
 
@@ -151,50 +151,118 @@ The easiest way without commands is **GitHub Desktop**:
 
 ---
 
-## Part C — Switch on emails and SMS
+## Part C — Switch on emails and WhatsApp
 
-### C1. Emails (Resend)
+### C1. Emails — use a Gmail account now, Resend after you buy a domain
 
-- [ ] Sign up at **resend.com**.
-- [ ] **Domains → Add Domain** → your domain. Resend shows a few DNS records: add them at your domain
-      registrar (or in Vercel → Domains, if Vercel manages your domain). Wait until it says **Verified**
-      (minutes to a few hours).
-- [ ] **API Keys → Create API Key** (sending access) → copy it.
-- [ ] In **Vercel → Settings → Environment Variables**:
-  - `RESEND_API_KEY` = the key
-  - `EMAIL_FROM` = `Ware Print <noreply@yourdomain.com>`
-  - `ADMIN_NOTIFICATION_EMAILS` = your email (several allowed, separated by commas)
-- [ ] Supabase → **Authentication → Emails → SMTP Settings** → turn on **custom SMTP**:
+Resend can only send to **your own** address until you verify a domain you own, so it cannot email sellers
+and buyers yet. Until you buy the domain, the website sends through a Gmail account instead.
+Gmail allows about 500 emails a day, which is plenty to start.
+
+**Set up Gmail (about 10 minutes)**
+
+- [ ] Recommended: create a separate Gmail for the business, e.g. `wareprint.pk@gmail.com`, so these emails
+      don't mix with your personal inbox. Buyers and sellers will see this address.
+- [ ] Sign in to that Gmail, open **myaccount.google.com → Security** and turn on **2-Step Verification**.
+- [ ] Open **myaccount.google.com/apppasswords**, type the name `Ware Print website` and press **Create**.
+      Copy the 16-letter password it shows. This is not your normal Gmail password, and you only see it once.
+- [ ] In **Vercel → Settings → Environment Variables** add:
+
+| Name | Value |
+| --- | --- |
+| `SMTP_USER` | the Gmail address |
+| `SMTP_PASSWORD` | the 16-letter app password |
+| `ADMIN_NOTIFICATION_EMAILS` | your email and your father's, separated by a comma |
+
+- [ ] Put the same values in `.env.local` on your computer.
+- [ ] **Sign-up and password emails also need it.** Supabase → **Authentication → Emails → SMTP Settings** →
+      turn on **custom SMTP**:
 
 | Field | Value |
 | --- | --- |
-| Sender email | `noreply@yourdomain.com` |
+| Sender email | the Gmail address |
 | Sender name | `Ware Print` |
-| Host | `smtp.resend.com` |
+| Host | `smtp.gmail.com` |
 | Port | `465` |
-| Username | `resend` |
-| Password | your Resend API key |
+| Username | the Gmail address |
+| Password | the 16-letter app password |
 
 - [ ] Supabase → **Authentication → Rate Limits** → raise **emails per hour** (it starts at 30) to about 100.
-- [ ] Vercel → **Redeploy**.
+- [ ] Vercel → **Deployments → ⋯ → Redeploy**.
 
-### C2. Text messages (Twilio)
+**Later, when you buy a domain — switch to Resend**
 
-SMS is used for phone verification codes and for "new inquiry" alerts to sellers.
+- [ ] Sign up at **resend.com** → **Domains → Add Domain** → add the DNS records it shows at your domain
+      registrar → wait for **Verified**.
+- [ ] **API Keys → Create API Key** → in Vercel add `RESEND_API_KEY` (the key) and
+      `EMAIL_FROM` = `Ware Print <noreply@yourdomain.com>`. Once a Resend key exists the website uses it
+      instead of Gmail, so you can then delete `SMTP_USER` and `SMTP_PASSWORD`.
+- [ ] Supabase → **SMTP Settings**: change Host to `smtp.resend.com`, Port `465`, Username `resend`,
+      Password = the Resend API key, Sender email `noreply@yourdomain.com`. Redeploy.
 
-- [ ] Sign up at **twilio.com** and verify your own phone number.
-- [ ] Buy a phone number with SMS (Console → **Phone Numbers → Buy a number**).
-- [ ] From the Twilio Console home page, copy the **Account SID** and **Auth Token**.
-- [ ] Read Twilio's Pakistan rules at **twilio.com/en-us/guidelines/pk/sms**. Pakistani networks may require
-      the sender to be registered first — ask Twilio support to confirm what applies to your account.
-- [ ] Add funds to your Twilio account. A trial account can only text numbers you have verified yourself.
-- [ ] In **Vercel → Environment Variables**: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and
-      `TWILIO_FROM_NUMBER` (the number you bought, like `+12025550123`). Redeploy.
+### C2. WhatsApp (verification codes and inquiry alerts)
 
-**If SMS to Pakistan is slow, expensive or blocked**, you can still run Ware Print:
-- Verify sellers by phone call: **Admin → Sellers → open the seller → Verify phone by call**.
-- Set `SEND_INQUIRY_SMS=false` to stop inquiry alerts by SMS (sellers still get them by email).
-- A developer can connect a Pakistani SMS company instead of Twilio by changing one file (`src/lib/sms.ts`).
+The website sends two WhatsApp messages: the 6-digit code when a seller verifies their number, and an alert
+to the seller when a buyer sends an inquiry. Both go through Meta's official **WhatsApp Cloud API**, with no
+middleman fees. Meta charges per message. Press reports put Pakistan at about US$0.015 per code from
+October 2026; check Meta's rate card for the current price.
+
+**What you need:** a phone number for Ware Print that is **not** active in the WhatsApp or WhatsApp Business
+app. A new SIM is easiest, because a number can't be on the app and the API at the same time.
+
+**1. Create the Meta app (10 minutes)**
+- [ ] Go to **developers.facebook.com** → log in with Facebook → **My Apps → Create App**.
+- [ ] Choose the use case **Connect with customers through WhatsApp** (type: Business). When asked, create a
+      **business portfolio** named `Ware Print`.
+- [ ] In the app, open **WhatsApp → API Setup**. Meta gives you a free **test number** to start with. Under
+      **To**, add your own and your father's WhatsApp numbers (test numbers can message up to 5 people).
+
+**2. Create the message templates.** Meta must approve these, usually within minutes.
+- [ ] Open **business.facebook.com → WhatsApp Manager → Message templates → Create template**.
+- [ ] **Verification code template**
+  - Category: **Authentication**
+  - Name: `wareprint_code`
+  - Language: **English (US)**
+  - Code delivery: **Copy code**
+  - Tick **Add security recommendation** and set the code to expire in **10 minutes**. Submit.
+- [ ] **Inquiry alert template** (optional but recommended)
+  - Category: **Utility**
+  - Name: `inquiry_alert`
+  - Language: **English (US)**
+  - Body:
+    `Ware Print: you have a new inquiry for {{1}} from {{2}}, phone {{3}}. The full message is in your email and your Ware Print dashboard.`
+  - Sample values Meta asks for: `WP-10001 Heidelberg SM 74`, `Ahmed`, `+92 300 1234567`. Submit.
+
+**3. Get a permanent access token.** The token on the API Setup page stops working after 24 hours.
+- [ ] **business.facebook.com → Settings → Users → System users → Add**: name `ware-print-website`,
+      role **Admin**.
+- [ ] **Assign assets**: your app (full control) and your WhatsApp account (full control).
+- [ ] **Generate new token** → choose your app → expiry **Never** → tick `whatsapp_business_messaging` and
+      `whatsapp_business_management` → copy the token.
+
+**4. Connect it to the website**
+- [ ] In **WhatsApp → API Setup**, copy the **Phone number ID** (a long number, not the phone number itself).
+- [ ] In **Vercel → Settings → Environment Variables** add:
+
+| Name | Value |
+| --- | --- |
+| `WHATSAPP_ACCESS_TOKEN` | the permanent token |
+| `WHATSAPP_PHONE_NUMBER_ID` | the Phone number ID |
+| `WHATSAPP_OTP_TEMPLATE` | `wareprint_code` |
+| `WHATSAPP_INQUIRY_TEMPLATE` | `inquiry_alert` |
+| `WHATSAPP_TEMPLATE_LANGUAGE` | `en_US` |
+
+- [ ] Redeploy, then test: sign up with a new seller account and verify the number.
+
+**5. Before launch — switch to your real Ware Print number**
+- [ ] **WhatsApp Manager → Phone numbers → Add phone number** → enter the Ware Print SIM number, verify it
+      with the code Meta sends, and set the display name **Ware Print** (Meta reviews the name).
+- [ ] Add a payment method in **WhatsApp Manager → Payment settings**.
+- [ ] Replace `WHATSAPP_PHONE_NUMBER_ID` in Vercel with the new number's ID and redeploy.
+
+**If WhatsApp is not set up yet**, sellers can't get a code. Verify them by phone call instead:
+**Admin → Sellers → open the seller → Verify phone by call**. (On your own computer, codes are shown on
+screen for testing.)
 
 ### C3. Your public contact details (optional)
 
@@ -211,7 +279,7 @@ Add these in Vercel so they appear in the footer and on the Contact page, then r
 - [ ] **Upgrade Supabase to Pro**, so the site never pauses and you get daily backups.
 - [ ] **Upgrade Vercel to Pro** for commercial use.
 - [ ] **Test with real people:** sign up with an email that is not yours and a Pakistani mobile number;
-      check the emails and SMS arrive.
+      check the emails and WhatsApp messages arrive.
 - [ ] **Remove test data:** Supabase → **Authentication → Users** → delete test accounts (their listings are
       deleted with them).
 
@@ -236,7 +304,8 @@ Price changes are the exception — they apply immediately.
 
 **Problem sellers.** **Admin → Sellers → open the seller → Suspend seller** hides all their listings at once.
 
-**Adding another admin.** They sign up on the website, then you run `supabase/make-admin.sql` with their email.
+**Adding another admin** (for example your father). They sign up on the website and confirm their email, then you run
+`supabase/make-admin.sql` with their email. Add their email to `ADMIN_NOTIFICATION_EMAILS` too.
 
 **Changing the seller oath.** Edit the text and change the version in `src/lib/agreement.ts`. Every seller is
 asked to sign the new version before submitting more listings.
@@ -251,5 +320,6 @@ asked to sign the new version before submitting more listings.
 | The confirmation email never arrives | Check spam. Before Part C, Supabase only emails your own address, a few times per hour. Part C fixes this. |
 | "That link has expired or was already used" | Each link works once. Check that **Site URL** and **Redirect URLs** in Supabase match your website address. |
 | "Upload not allowed" when adding photos | The seller has not verified their phone yet. |
-| A seller never receives the SMS code | Check the Twilio setup (Part C2), or verify them by phone call from **Admin → Sellers**. |
+| A seller never receives the WhatsApp code | Check the WhatsApp setup (Part C2). While using Meta's test number, only numbers added under **To** receive messages. Or verify them by phone call from **Admin → Sellers**. |
+| Emails stop arriving | Gmail sends about 500 emails a day. Check the app password is still valid (Part C1), or move to Resend. |
 | The website is down and Supabase says "paused" | Free projects pause after 7 days without visitors. Press **Restore** in Supabase and upgrade to Pro. |

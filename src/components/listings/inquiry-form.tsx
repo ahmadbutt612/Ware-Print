@@ -6,6 +6,7 @@ import { sendInquiry, type InquiryResult } from "@/actions/inquiries";
 import { Field } from "@/components/ui/field";
 import { IconCheck } from "@/components/ui/icons";
 import { Notice } from "@/components/ui/notice";
+import { Spinner } from "@/components/ui/spinner";
 import { INQUIRY_TOPICS } from "@/lib/format";
 import { COUNTRIES, PAKISTAN_CITIES } from "@/lib/site";
 
@@ -134,8 +135,14 @@ export function InquiryForm({ listingId, refLabel, sellerName }: { listingId: st
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <button type="submit" disabled={pending} className="btn btn-primary btn-lg">
-          {pending ? "Sending…" : "Send inquiry to seller"}
+        <button type="submit" disabled={pending} aria-busy={pending} className="btn btn-primary btn-lg">
+          {pending ? (
+            <>
+              <Spinner /> Sending your inquiry…
+            </>
+          ) : (
+            "Send inquiry to seller"
+          )}
         </button>
         <p className="text-xs text-ink-3">
           Your details are shared with this seller only. See our{" "}

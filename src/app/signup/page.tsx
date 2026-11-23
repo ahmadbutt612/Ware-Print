@@ -32,7 +32,7 @@ export default async function SignUpPage() {
         <FormField name="email" label="Email" required hint="Your login, and where buyer inquiries are sent.">
           <input id="email" name="email" type="email" autoComplete="email" className="field-input" />
         </FormField>
-        <FormField name="phone" label="Mobile number" required hint="We will text a code to verify it, e.g. 0300 1234567.">
+        <FormField name="phone" label="Mobile number" required hint="Use a number with WhatsApp — we send a code there to verify it.">
           <input id="phone" name="phone" type="tel" autoComplete="tel" className="field-input" />
         </FormField>
         <div className="grid gap-4 sm:grid-cols-2">

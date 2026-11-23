@@ -20,7 +20,7 @@ export function OnboardingChecklist({ onboarding }: { onboarding: Onboarding }) 
     {
       done: onboarding.phoneVerified,
       title: "Verify your mobile number",
-      body: "We text you a 6-digit code. Inquiry alerts are sent to this number.",
+      body: "We send a 6-digit code to this number on WhatsApp. Inquiry alerts go to it too.",
       href: "/dashboard/phone",
       cta: "Verify number",
     },

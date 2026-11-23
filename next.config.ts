@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.18.67", "*.local"],
   cacheComponents: false,
   poweredByHeader: false,
+  logging: { browserToTerminal: false },
   turbopack: {
     rules: {
       "*.css": {

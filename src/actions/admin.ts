@@ -93,7 +93,7 @@ export async function reviewListing(_prev: ActionResult, formData: FormData): Pr
             rows: [["Reference", ref] as [string, string]],
             quote: note || undefined,
             cta: { label: "View your listing", url: `${origin}${listingPath(listing.ref, listing.slug)}` },
-            footnote: "Inquiries are sent to your email and by SMS to your verified number.",
+            footnote: "Inquiries are sent to your email and to WhatsApp on your verified number.",
           }
         : decision === "changes"
           ? {

@@ -6,10 +6,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { AGREEMENT_VERSION, agreementText } from "@/lib/agreement";
 import { getAccount } from "@/lib/auth";
-import { isProduction } from "@/lib/env";
 import { formatPhone, normalizePhone } from "@/lib/phone";
 import { getRequestMeta, hmac } from "@/lib/request";
-import { isSmsConfigured, sendSms } from "@/lib/sms";
+import { codeChannel, sendVerificationCode } from "@/lib/messaging";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult } from "@/lib/types";
 import { CHECK_FIELDS, fail, fieldFail, str, zodFieldErrors } from "@/lib/validation";
@@ -108,32 +107,42 @@ export async function sendPhoneCode(_prev: ActionResult, formData: FormData): Pr
     return fail("Too many codes were requested. Please wait 15 minutes, or contact Ware Print to verify your number.");
   }
 
-  if (!isSmsConfigured() && isProduction) {
-    return fail("Text messages are not switched on yet. Please contact Ware Print to verify your number by phone.");
+  if (!codeChannel()) {
+    return fail("Phone verification is not switched on yet. Please contact Ware Print to verify your number by phone.");
   }
 
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-  const { error } = await admin.from("phone_otps").insert({
-    user_id: userId,
-    phone,
-    code_hash: hmac(`otp:${userId}:${phone}:${code}`),
-    expires_at: new Date(Date.now() + OTP_MINUTES * 60 * 1000).toISOString(),
-  });
-  if (error) {
+  const { data: otp, error } = await admin
+    .from("phone_otps")
+    .insert({
+      user_id: userId,
+      phone,
+      code_hash: hmac(`otp:${userId}:${phone}:${code}`),
+      expires_at: new Date(Date.now() + OTP_MINUTES * 60 * 1000).toISOString(),
+    })
+    .select("id")
+    .single();
+  if (error || !otp) {
     console.error("[sendPhoneCode]", error.message);
     return fail("The code could not be created. Please try again.");
   }
 
-  const sms = await sendSms(phone, `Your Ware Print verification code is ${code}. It expires in ${OTP_MINUTES} minutes. Do not share it.`);
-  if (!sms.ok && !sms.skipped) return fail("The text message could not be sent. Check the number and try again.");
+  const sent = await sendVerificationCode(phone, code, OTP_MINUTES);
+  if (!sent.ok) {
+    await admin.from("phone_otps").delete().eq("id", otp.id);
+    return fieldFail("phone", sent.error ?? "The code could not be sent. Please try again.");
+  }
   await admin.from("profiles").update({ phone_pending: phone }).eq("id", userId);
 
   revalidatePath("/dashboard/phone");
   return {
     ok: true,
-    message: sms.skipped
-      ? `Test mode — SMS is not set up on this computer, so here is your code: ${code}`
-      : `We sent a 6-digit code to ${formatPhone(phone)}.`,
+    message:
+      sent.channel === "test"
+        ? `Test mode — WhatsApp is not set up on this computer, so here is your code: ${code}`
+        : sent.channel === "whatsapp"
+          ? `We sent a 6-digit code to WhatsApp on ${formatPhone(phone)}.`
+          : `We sent a 6-digit code by SMS to ${formatPhone(phone)}.`,
   };
 }
 
@@ -143,7 +152,7 @@ export async function verifyPhoneCode(_prev: ActionResult, formData: FormData): 
   const userId = account.user.id;
 
   const code = str(formData.get("code")).replace(/\D/g, "");
-  if (code.length !== 6) return fieldFail("code", "Enter the 6-digit code from the text message.");
+  if (code.length !== 6) return fieldFail("code", "Enter the 6-digit code we sent you.");
 
   const admin = createAdminClient();
   const { data: otp } = await admin

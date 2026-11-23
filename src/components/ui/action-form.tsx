@@ -2,6 +2,7 @@
 
 import { createContext, startTransition, useActionState, useContext, type ReactNode } from "react";
 import { Notice } from "@/components/ui/notice";
+import { Spinner } from "@/components/ui/spinner";
 import type { ActionResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -143,7 +144,14 @@ export function PendingButton({
         if (confirm && !window.confirm(confirm)) e.preventDefault();
       }}
     >
-      {pending ? pendingText : children}
+      {pending ? (
+        <>
+          <Spinner />
+          {pendingText}
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }

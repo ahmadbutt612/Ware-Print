@@ -1,5 +1,4 @@
 import "server-only";
-import type { User } from "@supabase/supabase-js";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { AGREEMENT_VERSION } from "@/lib/agreement";
@@ -18,25 +17,40 @@ export interface Onboarding {
   complete: boolean;
 }
 
+/** The signed-in user, as read from their verified session token. */
+export interface SessionUser {
+  id: string;
+  email: string;
+  user_metadata: Record<string, unknown>;
+}
+
 export interface Account {
-  user: User;
+  user: SessionUser;
   profile: Profile;
   company: Company;
   onboarding: Onboarding;
   isAdmin: boolean;
 }
 
-/** The signed-in user, verified with Supabase Auth. Cached per request. */
-export const getUser = cache(async (): Promise<User | null> => {
+/**
+ * The signed-in user. The session token's signature is checked on this server
+ * (Supabase signing keys), so no extra network call is made. Cached per request.
+ */
+export const getUser = cache(async (): Promise<SessionUser | null> => {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
-  return data.user;
+  const { data, error } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (error || !claims?.sub) return null;
+  return {
+    id: claims.sub,
+    email: typeof claims.email === "string" ? claims.email : "",
+    user_metadata: (claims.user_metadata ?? {}) as Record<string, unknown>,
+  };
 });
 
-export function onboardingOf(user: User, profile: Profile, company: Company): Onboarding {
-  const emailVerified = Boolean(user.email_confirmed_at);
+export function onboardingOf(profile: Profile, company: Company): Onboarding {
+  const emailVerified = Boolean(profile.email_confirmed_at);
   const phoneVerified = Boolean(profile.phone && profile.phone_verified_at);
   const companyComplete = Boolean(
     company.name.trim() && company.city.trim() && company.country.trim() && profile.full_name.trim(),
@@ -66,34 +80,40 @@ export const getAccount = cache(async (): Promise<Account | null> => {
   let profile = profileRes.data as Profile | null;
   let company = companyRes.data as Company | null;
 
-  if (!profile || !company) {
-    // The account was created before the database was set up: create the rows now.
+  if (!profile || !company || !profile.email_confirmed_at) {
+    // Rare repair path: the account was created before the database was set up,
+    // or the email confirmation date was not copied. Ask Supabase Auth directly.
+    const { data } = await supabase.auth.getUser();
+    const authUser = data.user;
+    if (!authUser) return null;
     const admin = createAdminClient();
-    const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+    const meta = (authUser.user_metadata ?? {}) as Record<string, unknown>;
     if (!profile) {
       await admin.from("profiles").upsert(
         {
-          id: user.id,
-          email: user.email ?? "",
-          email_confirmed_at: user.email_confirmed_at ?? null,
+          id: authUser.id,
+          email: authUser.email ?? "",
+          email_confirmed_at: authUser.email_confirmed_at ?? null,
           full_name: typeof meta.full_name === "string" ? meta.full_name : "",
-          contact_email: user.email ?? null,
+          contact_email: authUser.email ?? null,
           phone_pending: typeof meta.phone === "string" ? meta.phone : null,
         },
         { onConflict: "id", ignoreDuplicates: true },
       );
+    } else if (authUser.email_confirmed_at) {
+      await admin.from("profiles").update({ email_confirmed_at: authUser.email_confirmed_at }).eq("id", authUser.id);
     }
     if (!company) {
       await admin
         .from("companies")
         .upsert(
-          { id: user.id, name: typeof meta.company_name === "string" ? meta.company_name : "" },
+          { id: authUser.id, name: typeof meta.company_name === "string" ? meta.company_name : "" },
           { onConflict: "id", ignoreDuplicates: true },
         );
     }
     const [p, c] = await Promise.all([
-      admin.from("profiles").select("*").eq("id", user.id).single(),
-      admin.from("companies").select("*").eq("id", user.id).single(),
+      admin.from("profiles").select("*").eq("id", authUser.id).single(),
+      admin.from("companies").select("*").eq("id", authUser.id).single(),
     ]);
     profile = p.data as Profile | null;
     company = c.data as Company | null;
@@ -104,7 +124,7 @@ export const getAccount = cache(async (): Promise<Account | null> => {
     user,
     profile,
     company,
-    onboarding: onboardingOf(user, profile, company),
+    onboarding: onboardingOf(profile, company),
     isAdmin: profile.role === "admin",
   };
 });

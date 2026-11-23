@@ -5,7 +5,7 @@ import { Notice } from "@/components/ui/notice";
 import { requireAdmin } from "@/lib/auth";
 import { isEmailConfigured } from "@/lib/email";
 import { EVENT_LABELS, formatMoney, isoDaysAgo, listingRef, timeAgo } from "@/lib/format";
-import { isSmsConfigured } from "@/lib/sms";
+import { codeChannel } from "@/lib/messaging";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Overview" };
@@ -57,11 +57,11 @@ export default async function AdminHome() {
         }
       />
 
-      {(!isEmailConfigured() || !isSmsConfigured()) && (
+      {(!isEmailConfigured() || !codeChannel()) && (
         <Notice tone="warn" title="Setup not finished">
-          {!isEmailConfigured() && "Email sending (Resend) is not set up, so sellers and buyers get no emails. "}
-          {!isSmsConfigured() &&
-            "SMS (Twilio) is not set up, so sellers cannot verify their phone by code — verify them by phone call from the Sellers page."}{" "}
+          {!isEmailConfigured() && "Email sending is not set up, so sellers and buyers get no emails. "}
+          {!codeChannel() &&
+            "WhatsApp is not set up, so sellers cannot verify their phone by code — verify them by phone call from the Sellers page."}{" "}
           See SETUP-GUIDE.md.
         </Notice>
       )}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { signOut } from "@/actions/auth";
 import { SideNav } from "@/components/dashboard/dash-nav";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { requireAccount } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,17 +39,17 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
             ]}
           />
           <form action={signOut} className="mt-4 hidden lg:block">
-            <button type="submit" className="px-3 text-sm text-ink-3 hover:text-ink hover:underline">
+            <SubmitButton className="inline-flex items-center gap-2 px-3 text-sm text-ink-3 hover:text-ink hover:underline" pendingText="Signing out…">
               Sign out
-            </button>
+            </SubmitButton>
           </form>
         </aside>
         <div className="min-w-0">{children}</div>
       </div>
       <form action={signOut} className="mt-10 border-t border-line pt-4 lg:hidden">
-        <button type="submit" className="text-sm text-ink-3 underline">
+        <SubmitButton className="inline-flex items-center gap-2 text-sm text-ink-3 underline" pendingText="Signing out…">
           Sign out
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

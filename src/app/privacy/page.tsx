@@ -32,14 +32,14 @@ export default function PrivacyPage() {
         <li>To show listings with the seller&apos;s company name and city.</li>
         <li>To send your inquiry to the seller of that listing — the seller receives your contact details so they can reply.</li>
         <li>To verify sellers, review listings, prevent fraud and keep records of introductions and commissions.</li>
-        <li>To send account emails and text messages (verification codes, inquiry alerts, review decisions).</li>
+        <li>To send account emails and WhatsApp messages (verification codes, inquiry alerts, review decisions).</li>
       </ul>
 
       <h2>Who we share it with</h2>
       <p>
         A seller&apos;s email address, phone number and address are never shown publicly. Buyer details go only to the
         seller of the listing the buyer asked about. We use trusted service providers to run the website: Supabase
-        (database and file storage), Vercel (hosting), Resend (email) and Twilio (SMS). We do not sell personal data.
+        (database and file storage), Vercel (hosting), an email provider, and WhatsApp (Meta) for verification codes and inquiry alerts. We do not sell personal data.
       </p>
 
       <h2>How long we keep it</h2>

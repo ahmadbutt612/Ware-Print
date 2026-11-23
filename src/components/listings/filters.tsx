@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, type ReactNode } from "react";
 import { IconDown } from "@/components/ui/icons";
 import type { BrowseFilters } from "@/lib/browse";
+import { startProgress } from "@/components/site/navigation-progress";
 import { CATEGORIES, CATEGORY_GROUPS } from "@/lib/categories";
 import type { Facets } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -56,7 +57,9 @@ export function Filters({ values, facets, activeCount }: { values: BrowseFilters
       if (typeof value === "string" && value.trim()) params.set(key, value.trim());
     }
     const qs = params.toString();
-    router.push(qs ? `/machines?${qs}` : "/machines", { scroll: false });
+    const next = qs ? `/machines?${qs}` : "/machines";
+    if (next !== window.location.pathname + window.location.search) startProgress();
+    router.push(next, { scroll: false });
   }
 
   return (

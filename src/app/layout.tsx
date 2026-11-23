@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
+import { Suspense } from "react";
+import { NavigationProgress } from "@/components/site/navigation-progress";
 import { SetupRequired } from "@/components/site/setup-required";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
@@ -69,6 +71,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             >
               Skip to content
             </a>
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
             <SiteHeader />
             <main id="main" className="flex-1">
               {children}

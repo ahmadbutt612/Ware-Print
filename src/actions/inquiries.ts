@@ -8,7 +8,7 @@ import { sendEmail } from "@/lib/email";
 import { INQUIRY_TOPICS, listingPath, listingRef } from "@/lib/format";
 import { formatPhone, normalizePhone } from "@/lib/phone";
 import { getOrigin, getRequestMeta } from "@/lib/request";
-import { sendSms } from "@/lib/sms";
+import { sendInquiryAlert } from "@/lib/messaging";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult, InquiryStatus } from "@/lib/types";
 import { CHECK_FIELDS, fail, fieldFail, str, zodFieldErrors } from "@/lib/validation";
@@ -112,7 +112,6 @@ export async function sendInquiry(_prev: InquiryResult, formData: FormData): Pro
   const question = [...topics.map((t) => `• ${t.line}`), d.message].filter(Boolean).join("\n");
   const location = [d.city, d.country].filter(Boolean).join(", ");
   const sellerEmail = seller.contact_email || seller.email;
-  const smsOn = (process.env.SEND_INQUIRY_SMS ?? "true").toLowerCase() !== "false";
 
   // Notify after responding, so the buyer is not kept waiting.
   after(async () => {
@@ -138,12 +137,9 @@ export async function sendInquiry(_prev: InquiryResult, formData: FormData): Pro
         },
         { replyTo: d.email },
       ),
-      smsOn && seller.phone
-        ? sendSms(
-            seller.phone,
-            `Ware Print: new inquiry for ${ref} from ${d.name}, ${formatPhone(phone)}. Full message sent to your email.`,
-          )
-        : Promise.resolve({ ok: false, skipped: true }),
+      seller.phone
+        ? sendInquiryAlert(seller.phone, { ref, title: listing.title, buyer: d.name, buyerPhone: phone })
+        : Promise.resolve({ ok: false }),
       sendEmail(d.email, {
         subject: `Your inquiry for ${ref} was sent`,
         heading: "Your inquiry was sent to the seller",

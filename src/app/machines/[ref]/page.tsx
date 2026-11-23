@@ -8,7 +8,7 @@ import { ListingView } from "@/components/listings/listing-view";
 import { Notice } from "@/components/ui/notice";
 import { getUser } from "@/lib/auth";
 import { categorySingular } from "@/lib/categories";
-import { getListingByRef, getSimilarListings } from "@/lib/data/listings";
+import { getListingByRef, getPublicCompany, getSimilarListings } from "@/lib/data/listings";
 import { formatMoney, listingPath, listingRef, STATUS_LABELS } from "@/lib/format";
 import { mediaUrl } from "@/lib/media";
 import { absoluteUrl } from "@/lib/site";
@@ -23,9 +23,8 @@ function parseParam(param: string): { ref: number; slug: string } | null {
 export async function generateMetadata({ params }: PageProps<"/machines/[ref]">): Promise<Metadata> {
   const parsed = parseParam((await params).ref);
   if (!parsed) return {};
-  const data = await getListingByRef(parsed.ref);
-  if (!data) return { title: "Listing not found" };
-  const { listing } = data;
+  const listing = await getListingByRef(parsed.ref);
+  if (!listing) return { title: "Listing not found" };
   const isPublic = listing.status === "published" || listing.status === "sold";
   const price =
     listing.price_type !== "on_request" && listing.price_amount
@@ -61,15 +60,19 @@ export async function generateMetadata({ params }: PageProps<"/machines/[ref]">)
 export default async function ListingPage({ params }: PageProps<"/machines/[ref]">) {
   const parsed = parseParam((await params).ref);
   if (!parsed) notFound();
-  const data = await getListingByRef(parsed.ref);
-  if (!data) notFound();
-  const { listing, company } = data;
+  const listing = await getListingByRef(parsed.ref);
+  if (!listing) notFound();
 
   if (listing.slug && parsed.slug !== listing.slug) redirect(listingPath(listing.ref, listing.slug));
 
-  const user = await getUser();
-  const isOwner = user?.id === listing.seller_id;
   const isPublic = listing.status === "published" || listing.status === "sold";
+  // Seller, viewer and similar machines are independent: fetch them together.
+  const [company, user, similar] = await Promise.all([
+    getPublicCompany(listing.seller_id),
+    getUser(),
+    isPublic ? getSimilarListings(listing.primary_category, listing.id) : Promise.resolve([]),
+  ]);
+  const isOwner = user?.id === listing.seller_id;
 
   if (listing.status === "published" && !isOwner) {
     const h = await headers();
@@ -97,7 +100,6 @@ export default async function ListingPage({ params }: PageProps<"/machines/[ref]
     </Notice>
   ) : null;
 
-  const similar = isPublic ? await getSimilarListings(listing.primary_category, listing.id) : [];
 
   const conditionSchema = {
     new: "https://schema.org/NewCondition",

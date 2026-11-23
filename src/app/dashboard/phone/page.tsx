@@ -29,7 +29,7 @@ export default async function PhonePage() {
       <DashHeader
         eyebrow="Verification"
         title="Mobile number"
-        description="Ware Print verifies every seller's mobile number. Buyer inquiry alerts are sent to it by SMS. Buyers never see it unless you reply to them."
+        description="Ware Print verifies every seller's mobile number. Codes and buyer inquiry alerts are sent to it on WhatsApp, so use a number that has WhatsApp. Buyers never see it unless you reply to them."
       />
 
       {verified && (
@@ -55,7 +55,7 @@ export default async function PhonePage() {
               />
             </FormField>
             <PendingButton className="btn btn-dark" pendingText="Sending…">
-              {activeCode ? "Send a new code" : "Send code by SMS"}
+              {activeCode ? "Send a new code" : "Send code on WhatsApp"}
             </PendingButton>
           </ActionForm>
         </section>
@@ -83,13 +83,13 @@ export default async function PhonePage() {
               <PendingButton pendingText="Checking…">Verify number</PendingButton>
             </ActionForm>
           ) : (
-            <p className="mt-3 text-sm text-ink-3">Send a code first. It arrives by SMS within a minute.</p>
+            <p className="mt-3 text-sm text-ink-3">Send a code first. It arrives on WhatsApp within a minute.</p>
           )}
         </section>
       </div>
 
       <p className="max-w-3xl text-sm text-ink-3">
-        No SMS after a few minutes? Check the number and send a new code. If it still does not arrive, contact Ware
+        No message after a few minutes? Check the number has WhatsApp and send a new code. If it still does not arrive, contact Ware
         Print — the team can verify your number with a phone call.
       </p>
     </div>

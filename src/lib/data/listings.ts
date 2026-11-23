@@ -87,9 +87,7 @@ export const getFacets = cache(async (): Promise<Facets> => {
  * A listing by its reference number, if the current visitor may see it:
  * anyone for published/sold listings, the owner for any status.
  */
-export const getListingByRef = cache(async function getListingByRef(
-  ref: number,
-): Promise<{ listing: ListingFull; company: Company | null } | null> {
+export const getListingByRef = cache(async function getListingByRef(ref: number): Promise<ListingFull | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("listings")
@@ -99,10 +97,7 @@ export const getListingByRef = cache(async function getListingByRef(
     .order("position", { referencedTable: "listing_media", ascending: true })
     .maybeSingle();
   if (error) console.error("[getListingByRef]", error.message);
-  if (!data) return null;
-  const listing = data as ListingFull;
-  const { data: company } = await supabase.from("companies").select("*").eq("id", listing.seller_id).maybeSingle();
-  return { listing, company: (company as Company | null) ?? null };
+  return (data as ListingFull | null) ?? null;
 });
 
 export async function getSimilarListings(category: string, excludeId: string, limit = 4): Promise<ListingCard[]> {
@@ -110,8 +105,8 @@ export async function getSimilarListings(category: string, excludeId: string, li
   return rows.filter((r) => r.id !== excludeId).slice(0, limit);
 }
 
-export async function getPublicCompany(id: string): Promise<Company | null> {
+export const getPublicCompany = cache(async function getPublicCompany(id: string): Promise<Company | null> {
   const supabase = await createClient();
   const { data } = await supabase.from("companies").select("*").eq("id", id).maybeSingle();
   return (data as Company | null) ?? null;
-}
+});

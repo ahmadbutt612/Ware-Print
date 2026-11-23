@@ -10,11 +10,11 @@ export const metadata: Metadata = {
 };
 
 const steps = [
-  ["Create your seller account", "Sign up with your email and mobile number. Confirm the email link, then verify your mobile with a 6-digit SMS code."],
+  ["Create your seller account", "Sign up with your email and mobile number. Confirm the email link, then verify your mobile with a 6-digit code sent on WhatsApp."],
   ["Add company details and sign the seller oath", "Your company name and city appear on your listings. The oath confirms your machines are genuine and sets out the 2% commission."],
   ["List the machine", "Choose a single machine or a complete setup. Add the model, year, running status, specifications, photos and videos. Price is optional."],
   ["Ware Print reviews it", "Our team checks the listing is genuine and printing or packaging related — usually within one working day. You get an email when it is live."],
-  ["Buyers contact you", "Inquiries arrive by email and SMS with the buyer's name, phone and question. You reply to them directly and arrange the inspection."],
+  ["Buyers contact you", "Inquiries arrive by email and WhatsApp with the buyer's name, phone and question. You reply to them directly and arrange the inspection."],
   ["Report the sale", "Mark the listing as sold. If the buyer came through Ware Print, we invoice the 2% commission."],
 ];
 

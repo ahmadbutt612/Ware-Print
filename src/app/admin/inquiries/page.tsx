@@ -85,7 +85,7 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps<"/a
                 <td className="px-3 py-2.5 text-xs text-ink-2">
                   Email {q.email_sent_at ? "✓" : "—"}
                   <br />
-                  SMS {q.sms_sent_at ? "✓" : "—"}
+                  WhatsApp {q.sms_sent_at ? "✓" : "—"}
                 </td>
                 <td className="px-3 py-2.5 text-xs">{INQUIRY_STATUS_LABELS[q.status]}</td>
               </tr>

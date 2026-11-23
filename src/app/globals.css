@@ -103,6 +103,11 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+  /* While a button is working it stays readable; the spinner shows progress. */
+  .btn[aria-busy="true"]:disabled {
+    opacity: 0.85;
+    cursor: progress;
+  }
   .btn-primary {
     background: var(--color-red);
     color: #fff;

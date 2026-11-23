@@ -1,11 +1,36 @@
 import "server-only";
+import nodemailer, { type Transporter } from "nodemailer";
 import { isProduction } from "@/lib/env";
 import { site } from "@/lib/site";
 import type { SendResult } from "@/lib/sms";
 import { escapeHtml } from "@/lib/utils";
 
+// Two ways to send email:
+//  * Resend (RESEND_API_KEY) — needs your own domain. Use this after launch.
+//  * Any SMTP mailbox, e.g. a Gmail account with an app password (SMTP_USER +
+//    SMTP_PASSWORD) — works before you own a domain. See SETUP-GUIDE.md, part C1.
+// If both are set, Resend is used.
+
+function smtpUser(): string {
+  return (process.env.SMTP_USER ?? "").trim();
+}
+
 export function isEmailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY);
+  return Boolean(process.env.RESEND_API_KEY || (smtpUser() && process.env.SMTP_PASSWORD));
+}
+
+let transporter: Transporter | null = null;
+function smtp(): Transporter {
+  if (!transporter) {
+    const port = Number(process.env.SMTP_PORT || 465);
+    transporter = nodemailer.createTransport({
+      host: (process.env.SMTP_HOST || "smtp.gmail.com").trim(),
+      port,
+      secure: port === 465,
+      auth: { user: smtpUser(), pass: (process.env.SMTP_PASSWORD ?? "").replace(/s+/g, "") },
+    });
+  }
+  return transporter;
 }
 
 export function adminEmails(): string[] {
@@ -88,6 +113,24 @@ export async function sendEmail(
       console.info(`[email not configured] to ${recipients.join(", ")}: ${content.subject}\n${renderText(content)}`);
     }
     return { ok: false, skipped: true };
+  }
+
+  if (!process.env.RESEND_API_KEY) {
+    try {
+      await smtp().sendMail({
+        // Mailboxes like Gmail only send from their own address.
+        from: { name: "Ware Print", address: smtpUser() },
+        to: recipients,
+        subject: content.subject,
+        html: renderHtml(content),
+        text: renderText(content),
+        ...(options.replyTo ? { replyTo: options.replyTo } : {}),
+      });
+      return { ok: true };
+    } catch (error) {
+      console.error("[email] SMTP send failed", error);
+      return { ok: false, error: "The email could not be sent" };
+    }
   }
 
   try {

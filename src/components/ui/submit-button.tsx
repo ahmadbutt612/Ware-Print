@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 export function SubmitButton({
@@ -33,7 +34,14 @@ export function SubmitButton({
         if (confirm && !window.confirm(confirm)) e.preventDefault();
       }}
     >
-      {pending ? (pendingText ?? "Working…") : children}
+      {pending ? (
+        <>
+          <Spinner />
+          {pendingText ?? "Working…"}
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }

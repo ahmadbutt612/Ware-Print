@@ -5,9 +5,11 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { saveListing } from "@/actions/listings";
 import { MachineFields, ManufacturerList } from "@/components/editor/machine-fields";
 import { MediaManager } from "@/components/editor/media-manager";
+import { startProgress } from "@/components/site/navigation-progress";
 import { Field } from "@/components/ui/field";
 import { IconCheck, IconPlus } from "@/components/ui/icons";
 import { Notice } from "@/components/ui/notice";
+import { Spinner } from "@/components/ui/spinner";
 import { categorySingular } from "@/lib/categories";
 import { formatMoney, lakhCrore } from "@/lib/format";
 import {
@@ -164,6 +166,7 @@ export function ListingEditor({
       setDirty(false);
       setSavedPaths(pathsOf(draft.media));
       if (isNew || intent === "submit") {
+        startProgress();
         router.push(`/dashboard/listings/${draft.id}?saved=${intent}`);
       } else {
         setMessage({ tone: "ok", text: res.message ?? "Saved." });
@@ -218,12 +221,36 @@ export function ListingEditor({
   const buttons = (
     <>
       {!published && !pending && (
-        <button type="button" className="btn btn-outline" onClick={() => save("draft")} disabled={saving !== null}>
-          {saving === "draft" ? "Saving…" : "Save draft"}
+        <button
+          type="button"
+          className="btn btn-outline"
+          onClick={() => save("draft")}
+          disabled={saving !== null}
+          aria-busy={saving === "draft"}
+        >
+          {saving === "draft" ? (
+            <>
+              <Spinner /> Saving…
+            </>
+          ) : (
+            "Save draft"
+          )}
         </button>
       )}
-      <button type="button" className="btn btn-primary" onClick={() => save("submit")} disabled={saving !== null}>
-        {saving === "submit" ? "Saving…" : primaryLabel}
+      <button
+        type="button"
+        className="btn btn-primary"
+        onClick={() => save("submit")}
+        disabled={saving !== null}
+        aria-busy={saving === "submit"}
+      >
+        {saving === "submit" ? (
+          <>
+            <Spinner /> {published || status === "pending" ? "Saving…" : "Submitting…"}
+          </>
+        ) : (
+          primaryLabel
+        )}
       </button>
     </>
   );

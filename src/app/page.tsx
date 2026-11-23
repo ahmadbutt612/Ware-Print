@@ -230,7 +230,7 @@ export default async function HomePage() {
           <ol className="mt-6 grid gap-px border border-line bg-line md:grid-cols-3">
             {[
               ["Find the machine", "Filter by machine type, running status, year and city. Every listing shows the model and full specifications."],
-              ["Ask the seller", "Send an inquiry from the listing. It goes to the seller by email and SMS, and they reply to you directly."],
+              ["Ask the seller", "Send an inquiry from the listing. It goes to the seller by email and WhatsApp, and they reply to you directly."],
               ["Inspect and agree", "Visit the machine, see it running, and agree the price and payment terms with the seller."],
             ].map(([title, body], i) => (
               <li key={title} className="bg-paper p-6">

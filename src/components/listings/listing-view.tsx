@@ -160,7 +160,7 @@ export function ListingView({
                   Ask the seller about this machine
                 </h2>
                 <p className="mt-1 mb-5 text-sm text-ink-2">
-                  Your question goes to {company?.name ?? "the seller"} by email and SMS. They reply to you directly.
+                  Your question goes to {company?.name ?? "the seller"} by email and WhatsApp. They reply to you directly.
                 </p>
                 <InquiryForm listingId={listing.id} refLabel={ref} sellerName={company?.name ?? "the seller"} />
               </section>

@@ -68,7 +68,7 @@ export default async function InquiriesPage({ searchParams }: PageProps<"/dashbo
       {rows.length === 0 ? (
         <div className="border border-line bg-paper-2 p-8 text-center text-sm text-ink-2">
           {all.length === 0
-            ? "No inquiries yet. When a buyer asks about one of your machines, it appears here and we email and text you."
+            ? "No inquiries yet. When a buyer asks about one of your machines, it appears here and we alert you by email and WhatsApp."
             : "Nothing in this list."}
         </div>
       ) : (

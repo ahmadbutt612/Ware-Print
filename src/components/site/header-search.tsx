@@ -3,13 +3,23 @@
 import Form from "next/form";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useId } from "react";
+import { startProgressTo } from "@/components/site/navigation-progress";
 import { IconSearch } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
 
 export function SearchForm({ defaultValue = "", className }: { defaultValue?: string; className?: string }) {
   const id = useId();
   return (
-    <Form action="/machines" role="search" className={cn("flex w-full min-w-0", className)}>
+    <Form
+      action="/machines"
+      role="search"
+      className={cn("flex w-full min-w-0", className)}
+      onSubmit={(e) => {
+        const params = new URLSearchParams();
+        new FormData(e.currentTarget).forEach((v, k) => params.append(k, String(v)));
+        startProgressTo(`/machines?${params}`);
+      }}
+    >
       <label htmlFor={id} className="sr-only">
         Search machines
       </label>

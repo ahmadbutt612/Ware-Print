@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { saveListing } from "@/actions/listings";
 import { MachineFields, ManufacturerList } from "@/components/editor/machine-fields";
 import { MediaManager } from "@/components/editor/media-manager";
-import { startProgress } from "@/components/site/navigation-progress";
+import { startProgressTo } from "@/components/site/navigation-progress";
 import { Field } from "@/components/ui/field";
 import { IconCheck, IconPlus } from "@/components/ui/icons";
 import { Notice } from "@/components/ui/notice";
@@ -166,8 +166,10 @@ export function ListingEditor({
       setDirty(false);
       setSavedPaths(pathsOf(draft.media));
       if (isNew || intent === "submit") {
-        startProgress();
-        router.push(`/dashboard/listings/${draft.id}?saved=${intent}`);
+        const target = `/dashboard/listings/${draft.id}?saved=${intent}`;
+        startProgressTo(target);
+        router.push(target);
+        router.refresh();
       } else {
         setMessage({ tone: "ok", text: res.message ?? "Saved." });
         router.refresh();
